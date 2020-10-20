@@ -4,7 +4,7 @@
 library(divergingPips)
 library(shiny)
 library(shinyBS)
-#library(colourpicker)
+library(colourpicker)
 library(tidyverse)
 library(haven)
 library(ggrepel)
