@@ -21,7 +21,7 @@ ui <- fluidPage(
     # Application title
     titlePanel(fixedRow(
         column(10,  h2("Balancinator")), 
-        column(2, tags$img(src = "balancinator.png", width="100px"))
+        #column(2, tags$img(src = "balancinator.png", width="100px"))
         )),
     includeMarkdown("intro.md"),
     tabsetPanel(type="tabs",
@@ -62,14 +62,14 @@ ui <- fluidPage(
                          column(3, wellPanel(
                              colourInput("maleColor", "Select colour for males", "purple"),
                              colourInput("femaleColor", "Select colour for females", "blue"),
-                             checkboxInput("malesUp", "Males up", value=T),
+                             checkboxInput("malesUp", "change order", value=T),
                              actionButton("balanceReplotButton", "Replot")
                          )),
                          column(9, wellPanel(
                             plotOutput(outputId = "balanceplot", height = "500px", width="100%"),
                          ))
                 ),
-                tabPanel("Proportion Plot", 
+                tabPanel("Scatter Plot", 
                          column(3, wellPanel(
                              colourInput("propStartColour", "Select start colour", "red"),
                              colourInput("propEndColour", "Select end colour", "green"),
@@ -79,7 +79,7 @@ ui <- fluidPage(
                              plotOutput(outputId = "proportionplot", height = "500px", width="100%")
                          ))
                 ),
-                tabPanel("Help!", includeMarkdown("help.md"))
+                tabPanel("About", includeMarkdown("help.md"))
     ),
     hr(),
     includeMarkdown("footer.md")
@@ -225,7 +225,7 @@ server <- function(input, output,session) {
             coord_fixed(xlim=c(0,100),ylim=c(0,100))+
             geom_text_repel(data=dp,aes(x=prop1, y=prop2,label=department))+
             theme_bw()+
-            labs(x="Proportion females year 1", y="Proportion females year 2",
+            labs(x="Gender balance (% female) year 1", y="Gender balance (% female) year 2",
                  size="Total N")
     })
     
