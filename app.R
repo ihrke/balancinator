@@ -4,6 +4,7 @@
 library(divergingPips)
 library(shiny)
 library(shinyBS)
+library("shinyWidgets")
 library(colourpicker)
 library(tidyverse)
 library(haven)
@@ -59,25 +60,41 @@ ui <- fluidPage(
                     )
                 ),
                 tabPanel("Balance Plot", 
-                         column(2, wellPanel(
+                         #column(2, wellPanel(
+                         dropdownButton(
                              colourInput("maleColor", "Select colour for males", "purple"),
                              colourInput("femaleColor", "Select colour for females", "blue"),
                              checkboxInput("malesUp", "change order", value=T),
-                             actionButton("balanceReplotButton", "Replot")
-                         )),
-                         column(10, wellPanel(
+                             actionButton("balanceReplotButton", "Replot"),
+                             circle = TRUE, status = "danger",
+                             icon = icon("gear"), width = "300px",
+                             
+                             tooltip = tooltipOptions(title = "Click to change plot settings")                                
+                             
+                         ),
+#                         column(10, wellPanel(
                             plotOutput(outputId = "balanceplot", height = "500px", width="100%"),
-                         ))
                 ),
                 tabPanel("Scatter Plot", 
-                         column(2, wellPanel(
-                             colourInput("propStartColour", "Select start colour", "red"),
-                             colourInput("propEndColour", "Select end colour", "green"),
-                             actionButton("propReplotButton", "Replot")
-                         )),
-                         column(10, wellPanel(
-                             plotOutput(outputId = "proportionplot", height = "500px", width="100%")
-                         ))
+                         dropdownButton(
+                                 colourInput("propStartColour", "Select start colour", "red"),
+                                 colourInput("propEndColour", "Select end colour", "green"),
+                                 actionButton("propReplotButton", "Replot"),
+                                 circle = TRUE, status = "danger",
+                                 icon = icon("gear"), width = "300px",
+                                 
+                                 tooltip = tooltipOptions(title = "Click to change plot settings")                                 
+                         ),
+                         plotOutput(outputId = "proportionplot", height = "500px", width="100%")
+                             
+                         # column(2, wellPanel(
+                         #     colourInput("propStartColour", "Select start colour", "red"),
+                         #     colourInput("propEndColour", "Select end colour", "green"),
+                         #     actionButton("propReplotButton", "Replot")
+                         # )),
+                         # column(10, wellPanel(
+                         #     plotOutput(outputId = "proportionplot", height = "500px", width="100%")
+                         # ))
                 ),
                 tabPanel("About", includeMarkdown("help.md"))
     ),
