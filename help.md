@@ -1,6 +1,4 @@
-# Welcome to the Balancinator 
-
-**Balancinator explained in 4 steps**
+# Balancinator explained in 4 steps
 
 1.	Select number of years
 2.	Select number of departments
