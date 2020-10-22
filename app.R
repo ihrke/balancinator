@@ -65,7 +65,7 @@ ui <- fluidPage(
                              colourInput("maleColor", "Select colour for males", "purple"),
                              colourInput("femaleColor", "Select colour for females", "blue"),
                              checkboxInput("malesUp", "change order", value=T),
-                             actionButton("balanceReplotButton", "Replot"),
+                             #actionButton("balanceReplotButton", "Replot"),
                              circle = TRUE, status = "danger",
                              icon = icon("gear"), width = "300px",
                              
@@ -79,7 +79,7 @@ ui <- fluidPage(
                          dropdownButton(
                                  colourInput("propStartColour", "Select start colour", "red"),
                                  colourInput("propEndColour", "Select end colour", "green"),
-                                 actionButton("propReplotButton", "Replot"),
+                                 #actionButton("propReplotButton", "Replot"),
                                  circle = TRUE, status = "danger",
                                  icon = icon("gear"), width = "300px",
                                  
@@ -189,7 +189,13 @@ server <- function(input, output,session) {
     # BALANCE PLOT
     # --------------------------------------------------------------
     output$balanceplot <- renderPlot({
-        a=input$balanceReplotButton
+        ## touching all the data-inputs to force redraw if they changed
+        years=unlist(lapply(1:input$nyears, function(i){input[[sprintf("year.%i",i)]]}))
+        deps=unlist(lapply(1:input$ndeps, function(i){input[[sprintf("department.%i",i)]]}))
+        n=input$nyears*(2*input$ndeps)
+        frq=unlist(lapply(1:n, function(i){as.integer(input[[sprintf("tbl.%i",i)]])}))
+        
+        #a=input$balanceReplotButton
         frq=array(as.integer(g_frq), dim=c(2,input$ndeps,input$nyears))    
         rownames(frq) = c("Women","Men")
         colnames(frq) = g_departments
@@ -211,7 +217,13 @@ server <- function(input, output,session) {
     # Proportion Plot
     # --------------------------------------------------------------
     output$proportionplot <- renderPlot({
-        a=input$propReplotButton
+        ## touching all the data-inputs to force redraw if they changed
+        years=unlist(lapply(1:input$nyears, function(i){input[[sprintf("year.%i",i)]]}))
+        deps=unlist(lapply(1:input$ndeps, function(i){input[[sprintf("department.%i",i)]]}))
+        n=input$nyears*(2*input$ndeps)
+        frq=unlist(lapply(1:n, function(i){as.integer(input[[sprintf("tbl.%i",i)]])}))
+        
+        #a=input$propReplotButton
         d=get_data_tidy(input )%>% 
             spread(gender, freq) %>%
             mutate(n=male+female, prop=female/n*100) 
