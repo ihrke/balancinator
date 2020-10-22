@@ -59,23 +59,23 @@ ui <- fluidPage(
                     )
                 ),
                 tabPanel("Balance Plot", 
-                         column(3, wellPanel(
+                         column(2, wellPanel(
                              colourInput("maleColor", "Select colour for males", "purple"),
                              colourInput("femaleColor", "Select colour for females", "blue"),
                              checkboxInput("malesUp", "change order", value=T),
                              actionButton("balanceReplotButton", "Replot")
                          )),
-                         column(9, wellPanel(
+                         column(10, wellPanel(
                             plotOutput(outputId = "balanceplot", height = "500px", width="100%"),
                          ))
                 ),
                 tabPanel("Scatter Plot", 
-                         column(3, wellPanel(
+                         column(2, wellPanel(
                              colourInput("propStartColour", "Select start colour", "red"),
                              colourInput("propEndColour", "Select end colour", "green"),
                              actionButton("propReplotButton", "Replot")
                          )),
-                         column(9, wellPanel(
+                         column(10, wellPanel(
                              plotOutput(outputId = "proportionplot", height = "500px", width="100%")
                          ))
                 ),
