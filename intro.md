@@ -1,13 +1,5 @@
 The Balancinator is a free and open source software originally created in 2020 by Lilli & Matthias Mittner. It allows anyone to build colored plots to visualize distribution of men and women by inserting simple excel sheets instead of writing programming code. 
 
-Balancinator explained in 4 steps
+The Balancinator operationalizes gender balance as binary between men and women. When interpreting the plots we encourage to acknowledge that there are more than two genders in your organization and that representation of men and women is only one of many aspects that indicates gender equality. 
 
-1.	Select number of years
-2.	Select number of departments
-3.	Fill inn data
-    -	directly
-    - or download excel sheet (or csv), fill in your data and upload again
-4.	Choose your balance plot or scatter plot 
-    - Feel free to adjust color and order
-    - Download images 
-
+The Balancinator was developed within the [Prestige Project](https://uit.no/research/prestige) (2018-2021) at UiT The Arctic University of Norway, a research and intervention project with the goal to promote gender balance in research leadership. It builds on Duarte, Melina, Adrianna Kochanska & Torill Nustad (2020). Gender distribution beyond coarse measurements: Balancing gender distribution in professorship positions at the UiT from 2020 and forward. Report 01/2020. Prestige Project (2018-2021/281862), SKK.
