@@ -31,7 +31,7 @@ ui <- fluidPage(
                         sliderInput("nyears", "Number of years", 1, 8, 2),
                         bsTooltip("nyears", "Number of years for which to plot the gender balance.", "right"),
                         
-                        sliderInput("ndeps", "Number of departments", 1, 5,3),
+                        sliderInput("ndeps", "Number of departments", 1, 50,3),
                         bsTooltip("ndeps", "Number of departments for which to plot the gender balance.", "right"),
                         
                         actionButton("zeroButton", "Set to zero"),
@@ -62,8 +62,8 @@ ui <- fluidPage(
                 tabPanel("Balance Plot", 
                          #column(2, wellPanel(
                          dropdownButton(
-                             colourInput("maleColor", "Select colour for males", "purple"),
-                             colourInput("femaleColor", "Select colour for females", "blue"),
+                             colourInput("maleColor", "Select colour for men", "purple"),
+                             colourInput("femaleColor", "Select colour for women", "blue"),
                              checkboxInput("malesUp", "change order", value=T),
                              #actionButton("balanceReplotButton", "Replot"),
                              circle = TRUE, status = "danger",
@@ -120,7 +120,7 @@ server <- function(input, output,session) {
             g_departments <<- sprintf("department %i", 1:n2)
         }
         if(is.null(g_frq) || length(g_frq)<(2*n1*n2)){
-            g_frq <<- 0#sample(ranmin:ranmax,n1*2*n2)
+            g_frq <<- rep(0,n1*n2*2)#sample(ranmin:ranmax,n1*2*n2)
         }
         if(length(g_frq)>2*n1*n2){
             g_frq <<- g_frq[1:(2*n1*n2)]
@@ -136,8 +136,8 @@ server <- function(input, output,session) {
         
         tbl[[length(tbl)+1]]=HTML("<tr><th>Year</th>")
         for(j in 1:n2){
-            tbl[[length(tbl)+1]]=HTML("<th style='font-weight:bold;'><center><font size='+0'>females</font></center></th>")#&#9792;
-            tbl[[length(tbl)+1]]=HTML("<th><center><font size='+0'>males</font></center></th>") #&#9794;
+            tbl[[length(tbl)+1]]=HTML("<th style='font-weight:bold;'><center><font size='+0'>women</font></center></th>")#&#9792;
+            tbl[[length(tbl)+1]]=HTML("<th><center><font size='+0'>men</font></center></th>") #&#9794;
             
         }
         tbl[[length(tbl)+1]]=HTML("</tr>")
@@ -180,7 +180,7 @@ server <- function(input, output,session) {
         #frq=unlist(lapply(1:n, function(i){as.integer(input[[sprintf("tbl.%i",i)]])}))
         data.frame(year=rep(g_years, each=input$ndeps*2),
                    department=rep(g_departments, each=2), 
-                   gender=rep(c("female", "male"), input$ndeps*input$nyears),
+                   gender=rep(c("women", "men"), input$ndeps*input$nyears),
                    freq=as.integer(g_frq))
     }
     
@@ -226,7 +226,7 @@ server <- function(input, output,session) {
         #a=input$propReplotButton
         d=get_data_tidy(input )%>% 
             spread(gender, freq) %>%
-            mutate(n=male+female, prop=female/n*100) 
+            mutate(n=men+women, prop=women/n*100) 
         
         year.pairs=data.frame(t(combn(g_years,2))) %>% setNames(c("year1","year2"))
 
@@ -245,7 +245,7 @@ server <- function(input, output,session) {
                                T ~ abs(v-50)))
         
         ggplot(NULL)+
-            geom_rect(data=bgdat, aes(xmin=-Inf, xmax=Inf, ymin=v, ymax=v+1, fill=c), alpha=0.4, show.legend=F)+
+            geom_rect(data=bgdat, aes(xmin=-Inf, xmax=Inf, ymin=v, ymax=v+1, fill=c), alpha=1, show.legend=F)+
             geom_point(data=dp, aes(x=prop1, y=prop2,size=n2))+
             scale_fill_gradient(high = input$propStartColour,
                                 low = input$propEndColour)+
@@ -254,7 +254,7 @@ server <- function(input, output,session) {
             coord_fixed(xlim=c(0,100),ylim=c(0,100))+
             geom_text_repel(data=dp,aes(x=prop1, y=prop2,label=department))+
             theme_bw()+
-            labs(x="Gender balance (% female) year 1", y="Gender balance (% female) year 2",
+            labs(x="Gender balance (% women) year 1", y="Gender balance (% women) year 2",
                  size="Total N")
     })
     
@@ -324,7 +324,7 @@ server <- function(input, output,session) {
             pmap(function(year,department,gender,freq){
                 yi=which(years==year)
                 di=which(deps==department)
-                gi=which(c("female","male")==gender)
+                gi=which(c("women","men")==gender)
                 all_freq[((yi-1)*ndeps*2)+(2*(di-1))+gi] <<- freq
             })
         
