@@ -4,4 +4,4 @@ The Balancinator operationalizes gender balance as binary between men and women.
 
 The Balancinator was developed within the [Prestige Project](https://uit.no/research/prestige) (2018-2021) at UiT The Arctic University of Norway, a research and intervention project with the goal to promote gender balance in research leadership. It builds on Duarte, Melina, Adrianna Kochanska & Torill Nustad (2020). Gender distribution beyond coarse measurements: Balancing gender distribution in professorship positions at the UiT from 2020 and forward. Report 01/2020. Prestige Project (2018-2021/281862), SKK.
 
-The Balancinator is still under construction. If you any questions or feedback for improvement please contact Lilli Mittner: lilli.mittner@uit.no
+The Balancinator is still under construction. If you have any questions or feedback for improvement please contact Lilli Mittner: lilli.mittner@uit.no
