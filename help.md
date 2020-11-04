@@ -6,7 +6,7 @@ Balancinator explained in 4 steps
     - manually
     - or download excel sheet (or csv), insert your data and upload again
 4.	Choose your balance plot or scatter plot 
-    - Feel free to adjust color and order
+    - Feel free to adjust colour and order
     - Download images 
 
 The Balance plot is based on the `divergingPips` R-package developed by Richard Morey: https://github.com/richarddmorey/divergingPips.
