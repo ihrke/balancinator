@@ -1,4 +1,4 @@
-The Balancinator is a free and open source software originally created in 2020 by Lilli & Matthias Mittner. It allows anyone to build coloured plots to visualize distribution of men and women by inserting simple excel sheets instead of writing programming code. 
+The Balancinator is a free and open source software originally created in 2020 by Lilli & Matthias Mittner. It allows anyone to build generic plots to visualize distribution of men and women by inserting simple excel sheets instead of writing programming code. 
 
 The Balancinator operationalizes gender balance as binary between men and women. When interpreting the plots we encourage to acknowledge that there might be more than two genders in your organization and that representation of men and women is only one of many indicators for gender equality. 
 
