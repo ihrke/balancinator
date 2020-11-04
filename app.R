@@ -28,10 +28,10 @@ ui <- fluidPage(
     tabsetPanel(type="tabs",
                 tabPanel("Data", 
                     column(3, wellPanel(
-                        sliderInput("nyears", "Number of years", 1, 20, 3),
+                        sliderInput("nyears", "Number of years", 1, 8, 2),
                         bsTooltip("nyears", "Number of years for which to plot the gender balance.", "right"),
                         
-                        sliderInput("ndeps", "Number of departments", 1, 10,4),
+                        sliderInput("ndeps", "Number of departments", 1, 5,3),
                         bsTooltip("ndeps", "Number of departments for which to plot the gender balance.", "right"),
                         
                         actionButton("zeroButton", "Set to zero"),
@@ -120,7 +120,7 @@ server <- function(input, output,session) {
             g_departments <<- sprintf("department %i", 1:n2)
         }
         if(is.null(g_frq) || length(g_frq)<(2*n1*n2)){
-            g_frq <<- sample(ranmin:ranmax,n1*2*n2)
+            g_frq <<- 0#sample(ranmin:ranmax,n1*2*n2)
         }
         if(length(g_frq)>2*n1*n2){
             g_frq <<- g_frq[1:(2*n1*n2)]
@@ -136,8 +136,8 @@ server <- function(input, output,session) {
         
         tbl[[length(tbl)+1]]=HTML("<tr><th>Year</th>")
         for(j in 1:n2){
-            tbl[[length(tbl)+1]]=HTML("<th><center><font size='+2'>&#9792;</font></center></th>")
-            tbl[[length(tbl)+1]]=HTML("<th><center><font size='+2'>&#9794;</font></center></th>")
+            tbl[[length(tbl)+1]]=HTML("<th style='font-weight:bold;'><center><font size='+0'>females</font></center></th>")#&#9792;
+            tbl[[length(tbl)+1]]=HTML("<th><center><font size='+0'>males</font></center></th>") #&#9794;
             
         }
         tbl[[length(tbl)+1]]=HTML("</tr>")
