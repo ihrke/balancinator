@@ -249,10 +249,11 @@ server <- function(input, output,session) {
         ggplot(NULL)+
             geom_rect(data=bgdat, aes(xmin=-Inf, xmax=Inf, ymin=v, ymax=v+1, fill=c), alpha=1, show.legend=F)+
             geom_point(data=dp, aes(x=prop1, y=prop2,size=n2))+
-            scale_fill_gradientn(colours=c("#b64a1a","#fec200","#6b9733"))+
+            scale_fill_gradientn(colours=c("#6b9733","#fec200","#b64a1a"))+
             #scale_fill_gradient(high = input$propStartColour,
             #                    low = input$propEndColour)+
-            geom_function(fun= ~ 50, xlim=c(-50,50))+
+            #geom_function(fun= ~ 50, xlim=c(-50,50))+
+            geom_vline(xintercept = 0)+
             facet_wrap(~contr)+
             coord_fixed(xlim=c(-50,50),ylim=c(0,100))+
             scale_x_continuous(limits = c(-50,50), expand = c(0, 0)) +
