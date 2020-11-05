@@ -9,11 +9,15 @@ library(colourpicker)
 library(tidyverse)
 library(haven)
 library(ggrepel)
+library(DT)
+library(htmltools)
+library(glue)
 
-
+this.year=as.integer(format(Sys.Date(), "%Y"))
 ## 
 ranmin=10
 ranmax=100
+max_deps=50
 
 # --------------------------------------------------------------
 # UI
@@ -28,16 +32,26 @@ ui <- fluidPage(
     tabsetPanel(type="tabs",
                 tabPanel("Data", 
                     column(3, wellPanel(
-                        sliderInput("nyears", "Number of years", 1, 8, 2),
-                        bsTooltip("nyears", "Number of years for which to plot the gender balance.", "right"),
+                        pickerInput(
+                            inputId = "years",
+                            label = "Choose years...", 
+                            choices = this.year:2000,
+                            selected=c(this.year,this.year-1),
+                            options = list(
+                                `selected-text-format` = "count > 5"), 
+                            multiple = TRUE
+                        ),
                         
-                        sliderInput("ndeps", "Number of departments", 1, 50,3),
+                        #sliderInput("nyears", "Number of years", 1, 8, 2),
+                        #bsTooltip("nyears", "Number of years for which to plot the gender balance.", "right"),
+                        
+                        sliderInput("ndeps", "Number of departments", 1, max_deps,3),
                         bsTooltip("ndeps", "Number of departments for which to plot the gender balance.", "right"),
                         
                         actionButton("zeroButton", "Set to zero"),
                         actionButton("randomButton", "Fill with random values"),
                         
-                        selectInput("downloadFormat", "Download Format", c("csv","xlsx")),
+                        selectInput("downloadFormat", "Download Format", c("xlsx","csv")),
                         bsTooltip("downloadFormat", "Choose the format for your download.", "right"),
                         
                         downloadButton("downloadData", "Download data"),
@@ -47,54 +61,47 @@ ui <- fluidPage(
                         # Input: Select a file ----
                         fileInput("inputfile", "Fill data from file",
                                   multiple = FALSE,
-                                  accept = c("text/csv",
+                                  accept = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                             "text/csv",
                                              "text/comma-separated-values,text/plain",
-                                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                             ".csv", ".xlsx")),
+                                             ".xlsx",".csv")),
                         #actionButton("testButton", "test"),
                         #bsTooltip("testButton", "test button")
                     )),
                     column(9, wellPanel(
-                        uiOutput("ui")
+                        tags$b("Insert data manually:"),
+                        tags$ul(
+                            tags$li("Double-click on a cell to edit."),
+                            tags$li("Press <TAB> to get to the next cell."),
+                            tags$li("Press <CRTL>+Enter to save the data.")
+                        ),
+                        DTOutput("balancedata")
+                        #uiOutput("ui")
                     )
                     )
                 ),
                 tabPanel("Balance Plot", 
-                         #column(2, wellPanel(
-                         dropdownButton(
+                         column(3, wellPanel(
+                         #dropdownButton(
                              colourInput("maleColor", "Select colour for men", "purple"),
                              colourInput("femaleColor", "Select colour for women", "blue"),
                              checkboxInput("malesUp", "change order", value=T),
+                             sliderInput("bar_width_n", "Number of bars", 1, 20, 4),
+                             sliderInput("bar_width", "Width of bars", 0.01, 1, 0.1, step=0.1),
+                             sliderInput("balanceplot_width", "Width of plot", 200, 1000, 500, step=50),
+                             sliderInput("balanceplot_height", "Height of plot", 200, 1000, 500, step=50),
                              #actionButton("balanceReplotButton", "Replot"),
-                             circle = TRUE, status = "danger",
-                             icon = icon("gear"), width = "300px",
+                             #circle = TRUE, status = "danger",
+                             #icon = icon("gear"), width = "300px",
                              
-                             tooltip = tooltipOptions(title = "Click to change plot settings")                                
+                             #tooltip = tooltipOptions(title = "Click to change plot settings")                                
                              
-                         ),
-#                         column(10, wellPanel(
-                            plotOutput(outputId = "balanceplot", height = "500px", width="100%"),
+                         )), column(9, wellPanel(                         
+                         uiOutput("balanceplots")
+                         ))
                 ),
-                tabPanel("Scatter Plot", 
-                         dropdownButton(
-                                 colourInput("propStartColour", "Select start colour", "red"),
-                                 colourInput("propEndColour", "Select end colour", "green"),
-                                 #actionButton("propReplotButton", "Replot"),
-                                 circle = TRUE, status = "danger",
-                                 icon = icon("gear"), width = "300px",
-                                 
-                                 tooltip = tooltipOptions(title = "Click to change plot settings")                                 
-                         ),
-                         plotOutput(outputId = "proportionplot", height = "500px", width="100%")
-                             
-                         # column(2, wellPanel(
-                         #     colourInput("propStartColour", "Select start colour", "red"),
-                         #     colourInput("propEndColour", "Select end colour", "green"),
-                         #     actionButton("propReplotButton", "Replot")
-                         # )),
-                         # column(10, wellPanel(
-                         #     plotOutput(outputId = "proportionplot", height = "500px", width="100%")
-                         # ))
+                tabPanel("Prestige Plot", 
+                         uiOutput("prestigeplots")
                 ),
                 tabPanel("About", includeMarkdown("help.md"))
     ),
@@ -107,182 +114,239 @@ ui <- fluidPage(
 # SERVER
 # --------------------------------------------------------------
 server <- function(input, output,session) {
-    g_years <- NULL ## all the years 
-    g_departments <- NULL ## all the departments
-    g_frq <- NULL   ## all frequencies for all combinations
-
-    create_tbl <- function(n1,n2){
-        #tbl=list(tags$table())
-        if(is.null(g_years) || length(g_years)!=n1){
-            g_years <<- sprintf("year %i", 1:n1)
-        }
-        if(is.null(g_departments) || length(g_departments)!=n2){
-            g_departments <<- sprintf("department %i", 1:n2)
-        }
-        if(is.null(g_frq) || length(g_frq)<(2*n1*n2)){
-            g_frq <<- rep(0,n1*n2*2)#sample(ranmin:ranmax,n1*2*n2)
-        }
-        if(length(g_frq)>2*n1*n2){
-            g_frq <<- g_frq[1:(2*n1*n2)]
-        }
-        tbl=list(HTML("<table><tr><th></th>"))
-        for(j in 1:n2){
-            
-            tbl[[length(tbl)+1]]=HTML("<th colspan=2>")
-            tbl[[length(tbl)+1]]=textInput(sprintf("department.%i",j), label="", value=g_departments[j])
-            tbl[[length(tbl)+1]]=HTML("</th>")
-        }
-        tbl[[length(tbl)+1]]=HTML("</tr>")
-        
-        tbl[[length(tbl)+1]]=HTML("<tr><th>Year</th>")
-        for(j in 1:n2){
-            tbl[[length(tbl)+1]]=HTML("<th style='font-weight:bold;'><center><font size='+0'>women</font></center></th>")#&#9792;
-            tbl[[length(tbl)+1]]=HTML("<th><center><font size='+0'>men</font></center></th>") #&#9794;
-            
-        }
-        tbl[[length(tbl)+1]]=HTML("</tr>")
-        
-        ix=1
-        for(i in 1:n1){ # rows
-            tbl[[length(tbl)+1]]=HTML("<tr>")
-            tbl[[length(tbl)+1]]=list(HTML("<td>"),textInput(sprintf("year.%i",i), label="", value=g_years[i]),HTML("</td>")) 
-            for( j in 1:(2*n2)){ #c olumns
-                tbl[[length(tbl)+1]]=HTML("<td>")
-                tbl[[length(tbl)+1]]=textInput(sprintf("tbl.%i",ix), label="", width="100%", value=g_frq[ix]) 
-                ix=ix+1
-                tbl[[length(tbl)+1]]=HTML("</td>") 
+    g_data <- NULL
+    
+    # header for the table
+    get_sketch = function(years){
+        htmltools::withTags(table(
+            class = 'display',
+            thead(
+                tr(
+                    th(rowspan = 2, 'Department'),
+                    lapply(years, function(.x) th(colspan = 2, align="center", style="text-align:center", .x)),
+                ),
+                tr(
+                    lapply(rep(c('Men', 'Women'), length(years)), function(.x) {th(style="text-align:center",.x)})
+                )
+            )
+        ))
+    }
+    
+    #output$ui <- renderUI( create_tbl(input$nyears, input$ndeps) )
+    output$balancedata <- renderDT({
+        a=input$randomButton
+        b=input$zeroButton
+        #print("JO")
+        #print(g_data)
+        if(is.null(g_data)){
+            # new initialization
+            #g_years <<- sprintf("year%i", 1:input$nyears)
+            g_data<<-tibble(
+                Department=sprintf("Department %i", 1:input$ndeps)
+            )
+            for(year in input$years){
+                g_data[sprintf("%s.men",year)]<<-rep(0,input$ndeps)
+                g_data[sprintf("%s.women",year)]<<-rep(0,input$ndeps)
             }
-            tbl[[length(tbl)+1]]=HTML("</tr>")
+        }  
+        
+        for(year in input$years){
+            if(paste0(year,".men") %in% names(g_data))
+                next
+            else {
+                g_data[sprintf("%s.men",year)]<<-rep(0,input$ndeps)
+                g_data[sprintf("%s.women",year)]<<-rep(0,input$ndeps)
+            }
         }
-        tbl[[length(tbl)+1]]=HTML("</table>")
-        
-        ## keep table and underlying data in sync
-        map(1:n2, ~ observeEvent(input[[sprintf("department.%i",.x)]],{
-            g_departments[.x] <<- (input[[sprintf("department.%i",.x)]])
-        }))
-        map(1:n1, ~ observeEvent(input[[sprintf("year.%i",.x)]],{
-            g_years[.x] <<- (input[[sprintf("year.%i",.x)]])
-        }))
-        map(1:(2*n1*n2), ~ observeEvent(input[[sprintf("tbl.%i",.x)]],{
-            g_frq[.x] <<- (input[[sprintf("tbl.%i",.x)]])
-        }))
-        
-        return(tbl)
-    }
-    
-    
-    output$ui <- renderUI( create_tbl(input$nyears, input$ndeps) )
+        all.years=unique(map_chr(str_split(names(g_data)[-1], pattern="\\."), ~ .x[1]))
+        for(year in all.years){
+            if(!(year %in% input$years)){
+                g_data[,paste0(year,".men")]<<-NULL
+                g_data[,paste0(year,".women")]<<-NULL
+            }
+        }
 
-    get_data_tidy <- function(input){
-        #years=unlist(lapply(1:input$nyears, function(i){input[[sprintf("year.%i",i)]]}))
-        #deps=unlist(lapply(1:input$ndeps, function(i){input[[sprintf("department.%i",i)]]}))
-        #n=input$nyears*(2*input$ndeps)
-        #frq=unlist(lapply(1:n, function(i){as.integer(input[[sprintf("tbl.%i",i)]])}))
-        data.frame(year=rep(g_years, each=input$ndeps*2),
-                   department=rep(g_departments, each=2), 
-                   gender=rep(c("women", "men"), input$ndeps*input$nyears),
-                   freq=as.integer(g_frq))
-    }
+        if(input$ndeps!=dim(g_data)[1]){
+            # num departments changed
+            if(input$ndeps>dim(g_data)[1]){
+                # add rows
+                new.deps=sprintf("Department %i", (dim(g_data)[1]+1):input$ndeps)
+                for(dep in new.deps){
+                    g_data <<- rbind(g_data, c(dep, rep(0,dim(g_data)[2]-1)))
+                }
+            } else {
+                # remove rows
+                g_data <<- g_data[1:input$ndeps,]
+            }
+        }
+        g_data
+    }, server=T, selection = 'none', editable="all", container=get_sketch(input$years), 
+        options=list(dom="tp", ordering=F,columnDefs = list(list(className = 'dt-center', targets = "_all"))),  rownames = F)
+    
+    observeEvent(input$balancedata_cell_edit, {
+        g_data <<- editData(g_data, input$balancedata_cell_edit, 'balancedata', rownames=F)
+        #print(g_data)
+    })
+
     
 
     # --------------------------------------------------------------
     # BALANCE PLOT
     # --------------------------------------------------------------
-    output$balanceplot <- renderPlot({
-        ## touching all the data-inputs to force redraw if they changed
-        years=unlist(lapply(1:input$nyears, function(i){input[[sprintf("year.%i",i)]]}))
-        deps=unlist(lapply(1:input$ndeps, function(i){input[[sprintf("department.%i",i)]]}))
-        n=input$nyears*(2*input$ndeps)
-        frq=unlist(lapply(1:n, function(i){as.integer(input[[sprintf("tbl.%i",i)]])}))
-        
-        #a=input$balanceReplotButton
-        frq=array(as.integer(g_frq), dim=c(2,input$ndeps,input$nyears))    
-        rownames(frq) = c("Women","Men")
-        colnames(frq) = g_departments
-        dimnames(frq)[[3]] = g_years
-        bar.col=c(input$femaleColor, input$maleColor)
-        if(input$malesUp){
-            # let men be on top
-            frq=frq[2:1,,]
-            bar.col=bar.col[2:1]
-        }
-        #print(frq)
-        #bar.col = array(c("red","blue","darkred","darkblue"),dim=c(2,2))
-        diverging_pip_plot(frq, bar.width = .1, bar.width.n = 4, bar.col = bar.col, add.pct=T,
-                           sym = T, cluster.width = .4, panel.lty = 1)
-        #divergingPips::diverging_pip_plot(frq,bar.width = .4, bar.width.n = 5, tick.every = 10, sym=F, bar.col=c("orange", "purple"))
+    output$balanceplots <- renderUI({
+        a=input$balancedata_cell_edit
+        nyears=length(input$years)
+        nplots=(nyears*(nyears-1))/2
+        plot_output_list <- lapply(1:input$ndeps, function(i) {
+            plotname <- paste("balanceplot", i, sep="")
+            plotOutput(plotname, height = input$balanceplot_height, width = input$balanceplot_width)
+        })
+        # Convert the list to a tagList - this is necessary for the list of items
+        # to display properly.
+        do.call(tagList, plot_output_list)
+    })    
+    for (i in 1:max_deps) {
+        local({
+            my_i <- i
+            plotname <- paste("balanceplot", my_i, sep="")
+            
+            output[[plotname]] <- renderPlot({
+                a=input$ndeps
+                b=input$balancedata_cell_edit
+                d=input$zeroButton
+                e=input$randomButton
+                
+                dep=unique(pull(g_data, Department))[my_i]
+                #print(dep)
+                g_data %>%
+                    filter(Department==dep) %>%
+                    gather(var,val,-Department) %>%
+                    separate(var,c("year","gender"),sep="\\.") %>%
+                    arrange(year,gender)-> d
+                
+                freq=as.array(as.integer(d$val))
+                if(all(freq==0)){
+                    plot(1,1)
+                    text(1,1,"NO DATA")
+                } else {
+                    dim(freq)=c(2,length(input$years))
+                    rownames(freq)=c("Men","Women")
+                    colnames(freq)=unique(d$year)
+                    bar.col=c(input$maleColor, input$femaleColor)
+                    if(input$malesUp){
+                        # let men be on top
+                        freq=freq[2:1,]
+                        bar.col=bar.col[2:1]
+                    }
+                    diverging_pip_plot(freq, bar.width = input$bar_width, bar.width.n = input$bar_width_n, bar.col = bar.col, add.pct=T,
+                                       sym = T, cluster.width = .4, panel.lty = 1)
+                    title(dep)
+                }
+            })
+        })
+    }
+    # --------------------------------------------------------------
+    # Prestige Plot
+    # --------------------------------------------------------------
+    output$prestigeplots <- renderUI({
+        a=input$balancedata_cell_edit
+        b=input$ndeps
+        nyears=length(input$years)
+        nplots=(nyears*(nyears-1))/2
+        plot_output_list <- lapply(1:nplots, function(i) {
+            plotname <- paste("prestigeplot", i, sep="")
+            plotOutput(plotname, height = 580, width = 500)
+        })
+        # Convert the list to a tagList - this is necessary for the list of items
+        # to display properly.
+        do.call(tagList, plot_output_list)
     })
     
-    # --------------------------------------------------------------
-    # Proportion Plot
-    # --------------------------------------------------------------
-    output$proportionplot <- renderPlot({
-        ## touching all the data-inputs to force redraw if they changed
-        years=unlist(lapply(1:input$nyears, function(i){input[[sprintf("year.%i",i)]]}))
-        deps=unlist(lapply(1:input$ndeps, function(i){input[[sprintf("department.%i",i)]]}))
-        n=input$nyears*(2*input$ndeps)
-        frq=unlist(lapply(1:n, function(i){as.integer(input[[sprintf("tbl.%i",i)]])}))
+    # Call renderPlot for each one. Plots are only actually generated when they
+    # are visible on the web page.
+    for (i in 1:max_deps) {
+        # Need local so that each item gets its own number. Without it, the value
+        # of i in the renderPlot() will be the same across all instances, because
+        # of when the expression is evaluated.
         
-        #a=input$propReplotButton
-        d=get_data_tidy(input )%>% 
-            spread(gender, freq) %>%
-            mutate(n=men+women, prop=women/n*100) 
-        
-        year.pairs=data.frame(t(combn(g_years,2))) %>% setNames(c("year1","year2"))
+        local({
+            my_i <- i
+            plotname <- paste("prestigeplot", my_i, sep="")
 
-        pmap_df(year.pairs, function(year1,year2){
-            d1=d %>% filter(year==year1) %>% 
-                select(department, n1=n, prop1=prop) %>% 
-                mutate(contr=sprintf("%s_%s",year1,year2))
-            d2=d %>% filter(year==year2) %>% select(n2=n, prop2=prop)
-            bind_cols(d1,d2)
-        }) %>%
-            mutate(prop1=prop2-prop1)->dp 
-    
+            output[[plotname]] <- renderPlot({
+                a=input$ndeps
+                b=input$balancedata_cell_edit
+                d=input$zeroButton
+                e=input$randomButton
+                
+                year.pairs=data.frame(t(combn(input$years,2))) %>% setNames(c("year1","year2"))
+                year1=as.character(year.pairs[my_i,1])
+                year2=as.character(year.pairs[my_i,2])
+                yy=as.character(sort(as.integer(c(year1,year2))))
+                year1=yy[1]
+                year2=yy[2]
+                g_data %>% gather(var,freq,-Department) %>%
+                    separate(var,c("year","gender"),sep="\\.") %>%
+                    rename(department=Department) %>%
+                    spread(gender, freq) %>%
+                    mutate(n=men+women, prop=women/n*100) %>%
+                    filter(year %in% c(year1,year2)) %>%
+                    gather(var,val,n,prop) %>% 
+                    unite(year,var,col = "var", sep = "_") %>%
+                    select(department,var,val) %>%
+                    spread(var,val) %>%
+                    rename(prop1=paste0(year1,"_prop"),
+                           prop2=paste0(year2,"_prop"),
+                           n1=paste0(year1,"_n"),
+                           n2=paste0(year2,"_n")) %>%
+                    mutate(prop1=prop2-prop1)-> d
+                #print(d)
+                
+                
+                bgdat=data.frame(v=0:100) %>%
+                    mutate(c=case_when(#v>40 & v<60 ~ 0,
+                        T ~ abs(v-50)))
+                
+                #print(paste0(year1,"_prop"))
+                ggplot(NULL)+
+                    geom_rect(data=bgdat, aes(xmin=-Inf, xmax=Inf, ymin=v, ymax=v+1, fill=c), alpha=1, show.legend=F)+
+                    geom_point(data=d, aes(x=prop1,y=prop2,size=pmax(n1,n2)))+
+                    scale_fill_gradientn(colours=c("#6b9733","#fec200","#b64a1a"))+
+                    #scale_fill_gradient(high = input$propStartColour,
+                    #                    low = input$propEndColour)+
+                    #geom_function(fun= ~ 50, xlim=c(-50,50))+
+                    geom_vline(xintercept = 0)+
+                    coord_fixed(xlim=c(-50,50),ylim=c(0,100))+
+                    scale_x_continuous(limits = c(-50,50), expand = c(0, 0)) +
+                    scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
+                    geom_text_repel(data=d,aes(x=prop1, y=prop2,label=department))+
+                    theme_bw()+
+                    labs(x=glue("Percent change (% women) from {year1} to {year2}"), 
+                                y=glue("Gender balance (% women) {year2}"),
+                         size="Total N")
+            })
+        })
+    }
 
-        print(dp)
-        
-        bgdat=data.frame(v=0:100) %>%
-            mutate(c=case_when(#v>40 & v<60 ~ 0,
-                               T ~ abs(v-50)))
-        
-        ggplot(NULL)+
-            geom_rect(data=bgdat, aes(xmin=-Inf, xmax=Inf, ymin=v, ymax=v+1, fill=c), alpha=1, show.legend=F)+
-            geom_point(data=dp, aes(x=prop1, y=prop2,size=n2))+
-            scale_fill_gradientn(colours=c("#6b9733","#fec200","#b64a1a"))+
-            #scale_fill_gradient(high = input$propStartColour,
-            #                    low = input$propEndColour)+
-            #geom_function(fun= ~ 50, xlim=c(-50,50))+
-            geom_vline(xintercept = 0)+
-            facet_wrap(~contr)+
-            coord_fixed(xlim=c(-50,50),ylim=c(0,100))+
-            scale_x_continuous(limits = c(-50,50), expand = c(0, 0)) +
-            scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
-            geom_text_repel(data=dp,aes(x=prop1, y=prop2,label=department))+
-            theme_bw()+
-            labs(x="Percent change from year 1 to year 2", y="Gender balance (% women) year 2",
-                 size="Total N")
-    })
-    
-    
     # --------------------------------------------------------------
     # BUTTONS
     # --------------------------------------------------------------
     observeEvent(input$zeroButton, {
-        n=input$nyears*(2*input$ndeps)
-        g_frq <<- rep(0, n)
-        map(1:n,  ~ updateTextInput(session, sprintf("tbl.%i",.x), value="0"))
+        g_data[,-1] <<- 0
     })
     
     observeEvent(input$randomButton, {
-        n=input$nyears*(2*input$ndeps)
-        g_frq <<- sample(ranmin:ranmax, n, replace=T)
-        map(1:n,  ~ updateTextInput(session, sprintf("tbl.%i",.x), value=sprintf("%i",g_frq[.x])))
+        datproxy = dataTableProxy('balancedata')
+        n=prod(dim(g_data[,-1]))
+        a=sample(ranmin:ranmax, n, replace=T)
+        dim(a) <- dim(g_data[,-1])
+        g_data[,-1] <<- a
+        #print(g_data)
+        #replaceData(datproxy, g_data, resetPaging = TRUE)  # important
     })
     observeEvent(input$testButton, {
-        print(g_departments)
         print(g_years)
-        print(g_frq)
+        print(g_data)
         #updateSliderInput(session, "nyears", value=7)
         #n=input$nyears*(2*input$ndeps)
         #map(1:n,  ~ updateTextInput(session, sprintf("tbl.%i",.x), value=sprintf("%i",sample(ranmin:ranmax,1))))
@@ -300,7 +364,7 @@ server <- function(input, output,session) {
         }
         
         req(input$inputfile)
-        req_cols=c("year","department","gender","freq")
+        #req_cols=c("year","department","gender","freq")
         d=NULL
         if (tolower(tools::file_ext(input$inputfile$datapath)) == "xlsx") { 
             tryCatch({ d=readxl::read_xlsx(input$inputfile$datapath) },
@@ -314,34 +378,22 @@ server <- function(input, output,session) {
             formatErrorPopUp()
         }
         
-        if(!all(unlist(map(req_cols, ~ .x %in% names(d))))){
-            formatErrorPopUp()
-            d=NULL
-        }
         req(d)
         
-        # format for internal structure
-        years=unique(d$year)
-        deps=unique(d$department)
-        nyears=length(years)
-        ndeps=length(deps)
-        all_freq <- rep(0,2*nyears*ndeps)
-        d %>% select(year,department,gender,freq) %>%
-            pmap(function(year,department,gender,freq){
-                yi=which(years==year)
-                di=which(deps==department)
-                gi=which(c("women","men")==gender)
-                all_freq[((yi-1)*ndeps*2)+(2*(di-1))+gi] <<- freq
-            })
+        g_data <<- d
+        #print(g_data)
+        all.years=unique(map_chr(str_split(names(g_data)[-1], pattern="\\."), ~ .x[1]))
         
-        # update global dataset
-        g_years <<- years
-        g_departments <<- deps
-        g_frq <<- all_freq
+        updatePickerInput(session, "years", selected=all.years)
+        proxy = dataTableProxy('balancedata')
+        replaceData(proxy, g_data, resetPaging = FALSE)  # important
+        
+        
+        #g_data <<- editData(g_data, input$balancedata_cell_edit, 'balancedata', rownames=F)
         
         # rebuild UI
-        updateSliderInput(session, "nyears", value=nyears)
-        updateSliderInput(session, "ndeps", value=ndeps)
+        #updateSliderInput(session, "nyears", value=nyears)
+        #updateSliderInput(session, "ndeps", value=ndeps)
     })
     
     # Download dataset ----
@@ -351,9 +403,9 @@ server <- function(input, output,session) {
             },
         content = function(file) {
             if(input$downloadFormat=="csv"){
-                write.csv(get_data_tidy(input), file, row.names = FALSE)
+                write.csv(g_data, file, row.names = FALSE)
             } else {
-                writexl::write_xlsx(get_data_tidy(input), file)
+                writexl::write_xlsx(g_data, file)
             }
         }
     )
