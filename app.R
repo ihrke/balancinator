@@ -27,7 +27,7 @@ ui <- fluidPage(
     titlePanel(fixedRow(
         column(10,  h2("Balancinator")), 
         #column(2, tags$img(src = "balancinator.png", width="100px"))
-        )),
+        ), windowTitle = "Balancinator"),
     includeMarkdown("intro.md"),
     tabsetPanel(type="tabs",
                 tabPanel("Data", 
@@ -101,7 +101,16 @@ ui <- fluidPage(
                          ))
                 ),
                 tabPanel("Prestige Plot", 
-                         uiOutput("prestigeplots")
+                         column(3, wellPanel(
+                             checkboxInput("gridSwitch", "include grid", value=T),
+                             checkboxInput("propMen", "show proportion men", value=F),
+                             checkboxInput("prestigeplotDifference", "plot difference on x-axis", value=F),
+                             #sliderInput("bar_width_n", "Number of bars", 1, 20, 4),
+                             #sliderInput("bar_width", "Width of bars", 0.01, 1, 0.1, step=0.1),
+                             sliderInput("prestigeplot_size", "Size of plot", 200, 1000, 500, step=50),
+                         )), column(9, wellPanel(                         
+                             uiOutput("prestigeplots")
+                         ))                         
                 ),
                 tabPanel("About", includeMarkdown("help.md"))
     ),
@@ -255,7 +264,7 @@ server <- function(input, output,session) {
         nplots=(nyears*(nyears-1))/2
         plot_output_list <- lapply(1:nplots, function(i) {
             plotname <- paste("prestigeplot", i, sep="")
-            plotOutput(plotname, height = 580, width = 500)
+            plotOutput(plotname,  height = input$prestigeplot_size, width = input$prestigeplot_size)
         })
         # Convert the list to a tagList - this is necessary for the list of items
         # to display properly.
@@ -298,31 +307,80 @@ server <- function(input, output,session) {
                     rename(prop1=paste0(year1,"_prop"),
                            prop2=paste0(year2,"_prop"),
                            n1=paste0(year1,"_n"),
-                           n2=paste0(year2,"_n")) %>%
-                    mutate(prop1=prop2-prop1)-> d
+                           n2=paste0(year2,"_n")) -> d
+                
+                if(input$prestigeplotDifference){
+                    d %>% mutate(prop1=prop2-prop1)-> d
+                }
                 #print(d)
                 
                 
-                bgdat=data.frame(v=0:100) %>%
+                bgdat=data.frame(v=-10:110) %>%
                     mutate(c=case_when(#v>40 & v<60 ~ 0,
                         T ~ abs(v-50)))
                 
+                propgender="women"
+                if(input$propMen){
+                    if(input$prestigeplotDifference){
+                    d$prop1=-d$prop1
+                    } else {
+                        d$prop1=100-d$prop1
+                    }
+                    d$prop2=100-d$prop2
+                    propgender="men"
+                }
+                
                 #print(paste0(year1,"_prop"))
+                grid.maj.x=c()#element_blank()
+                grid.min.x=c()#element_blank()
+                grid.maj.y=c()#element_blank()
+                grid.min.y=c()#element_blank()
+                
+                diagline=1
+                vertline=0
+                if(input$prestigeplotDifference){
+                    diagline=0
+                    vertline=1
+                }
+                if(input$gridSwitch){
+                    grid.maj.x=c(0,25,50,75,100)
+                    grid.maj.y=c(0,25,50,75,100)
+                    grid.min.x=c(12.5, 37.5, 62.5, 87.5)
+                    grid.min.y=c(12.5, 37.5, 62.5, 87.5)
+                    if(input$prestigeplotDifference){
+                        grid.maj.x = grid.maj.x-50
+                        grid.min.x = grid.min.x-50
+                    }
+                }
                 ggplot(NULL)+
                     geom_rect(data=bgdat, aes(xmin=-Inf, xmax=Inf, ymin=v, ymax=v+1, fill=c), alpha=1, show.legend=F)+
-                    geom_point(data=d, aes(x=prop1,y=prop2,size=pmax(n1,n2)))+
                     scale_fill_gradientn(colours=c("#6b9733","#fec200","#b64a1a"))+
                     #scale_fill_gradient(high = input$propStartColour,
                     #                    low = input$propEndColour)+
                     #geom_function(fun= ~ 50, xlim=c(-50,50))+
-                    geom_vline(xintercept = 0)+
-                    coord_fixed(xlim=c(-50,50),ylim=c(0,100))+
-                    scale_x_continuous(limits = c(-50,50), expand = c(0, 0)) +
-                    scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
-                    geom_text_repel(data=d,aes(x=prop1, y=prop2,label=department))+
+                    geom_vline(xintercept = 0, color="white", size=vertline)+
+                    geom_abline(slope=1, intercept=0, color="white", size=diagline)+
+                    geom_vline(xintercept = grid.maj.x, color="white", size=0.5)+
+                    geom_vline(xintercept = grid.min.x, color="white", size=0.1)+
+                    geom_hline(yintercept = grid.maj.y, color="white", size=0.5)+
+                    geom_hline(yintercept = grid.min.y, color="white", size=0.1)+
+                    geom_point(data=d, aes(x=prop1,y=prop2,size=pmax(n1,n2)))+
+                    #coord_fixed(xlim=c(-50,50),ylim=c(0,100))+
+                    scale_x_continuous(expand = c(.1, .1)) +
+                    scale_y_continuous(expand = c(0, 0)) +
+                    #scale_x_continuous(limits = c(-50,50), expand = c(0, 0)) +
+                    #scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
+                    scale_size_continuous(limits = c(0,max(pmax(d$n1,d$n2))))+
+                    geom_text_repel(data=d,aes(x=prop1, y=prop2,label=department),
+                                    #arrow = arrow(),#length = unit(0.03, "npc"), type = "closed", ends = "first"),
+                                    force=2)+
                     theme_bw()+
-                    labs(x=glue("Percent change (% women) from {year1} to {year2}"), 
-                                y=glue("Gender balance (% women) {year2}"),
+                    theme(#panel.grid.major=grid.maj,
+                          #panel.grid.minor=grid.min,
+                          #panel.ontop=input$gridSwitch,
+                          panel.background = element_rect(fill = NA))+
+                    labs(x=glue("Percent change (% {propgender}) from {year1} to {year2}"), 
+                                y=glue("Gender balance (% {propgender}) {year2}"),
                          size="Total N")
             })
         })
@@ -382,8 +440,8 @@ server <- function(input, output,session) {
         
         g_data <<- d
         #print(g_data)
-        all.years=unique(map_chr(str_split(names(g_data)[-1], pattern="\\."), ~ .x[1]))
-        
+        all.years=as.integer(unique(map_chr(str_split(names(g_data)[-1], pattern="\\."), ~ .x[1])))
+        ndeps=dim(g_data)[1]
         updatePickerInput(session, "years", selected=all.years)
         proxy = dataTableProxy('balancedata')
         replaceData(proxy, g_data, resetPaging = FALSE)  # important
@@ -393,7 +451,7 @@ server <- function(input, output,session) {
         
         # rebuild UI
         #updateSliderInput(session, "nyears", value=nyears)
-        #updateSliderInput(session, "ndeps", value=ndeps)
+        updateSliderInput(session, "ndeps", value=ndeps)
     })
     
     # Download dataset ----
