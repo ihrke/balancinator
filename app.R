@@ -336,11 +336,13 @@ server <- function(input, output,session) {
                 grid.maj.y=c()#element_blank()
                 grid.min.y=c()#element_blank()
                 
+                xlabel=glue("Gender balance (% {propgender}) {year1}")
                 diagline=1
                 vertline=0
                 if(input$prestigeplotDifference){
                     diagline=0
                     vertline=1
+                    xlabel=glue("Percent change (% {propgender}) from {year1} to {year2}")                    
                 }
                 if(input$gridSwitch){
                     grid.maj.x=c(0,25,50,75,100)
@@ -379,8 +381,8 @@ server <- function(input, output,session) {
                           #panel.grid.minor=grid.min,
                           #panel.ontop=input$gridSwitch,
                           panel.background = element_rect(fill = NA))+
-                    labs(x=glue("Percent change (% {propgender}) from {year1} to {year2}"), 
-                                y=glue("Gender balance (% {propgender}) {year2}"),
+                    labs(x=xlabel, 
+                         y=glue("Gender balance (% {propgender}) {year2}"),
                          size="Total N")
             })
         })
