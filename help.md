@@ -8,10 +8,6 @@
 3. Adjust colour, size and order
 4. Download images 
 
-The Balance plot is based on the `divergingPips` R-package developed by Richard Morey: https://github.com/richarddmorey/divergingPips.
-
-The source code of the Balancinator is located at: https://github.com/ihrke/balancinator/
-
 
 <h4>Video tutorial in 4 minutes</h4>	
 
