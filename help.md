@@ -14,4 +14,7 @@ The source code of the Balancinator is located at: https://github.com/ihrke/bala
 
 Short introduction video
 
+[![Watch the video](https://i.imgur.com/vKb2F1B.png)](https://mediasite.uit.no/Mediasite/Play/446385c0f55748cab69a14fa1ed735541d)
+
+
 <iframe width="900" height="600" frameborder="0" scrolling="auto" marginheight="0" marginwidth="0" src="https://mediasite.uit.no/Mediasite/Play/446385c0f55748cab69a14fa1ed735541d" allowfullscreen msallowfullscreen allow="fullscreen"></iframe>
