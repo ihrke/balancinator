@@ -12,7 +12,7 @@ The source code of the Balancinator is located at: https://github.com/ihrke/bala
 The Balancinator allows you to:
 
 - Create beautiful evidence to assess gender balance beyond coarse measurements.
-- Visualize gender balance by means of generic plots of by diverging pips.
+- Visualize gender balance by means of generic plots of diverging pips.
 - Built scatter plots that indicates increase or decrease of gender balance between two points in time.
 - Identify units that are in need of specific attention for gender equality measures.
 - Download image files in .png  (and soon .pdf) format you can use on your presentation, poster, role-up etc..
