@@ -13,7 +13,7 @@ The Balance plot is based on the `divergingPips` R-package developed by Richard 
 The source code of the Balancinator is located at: https://github.com/ihrke/balancinator/
 
 
-<h4>Short introduction video</h4>	
+<h4>Four minutes video tutorial</h4>	
 
 
 [![Watch the video](https://intranett.uit.no/Content/709268/cache=1605876782000/Screenshot+2020-11-20+at+13.51.05.png)](https://mediasite.uit.no/Mediasite/Play/446385c0f55748cab69a14fa1ed735541d)
