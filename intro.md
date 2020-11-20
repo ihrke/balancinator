@@ -10,10 +10,10 @@ The Balancinator allows you to:
 - Visualize gender balance by means of generic plots of by diverging pips
 - Built scatter plots that indicates increase or decrease of gender balance between two points in time
 - Measure gender balance in your organization within and across the different units
-•	Identify units that are in need of specific attention for gender equality measures
-•	Download image files in .png  (and soon .pdf) format you can use on your presentation, poster, role-up etc.
-•	Monitor gender balance within and across the different fields of knowledge and disciplines constituting the broad educational and research portfolio of the institution
-•	Evaluate the effects of interventions at the units’ level
-•	Serve as guidance for the generation of effective and more gender-aware management practices at the institution.
+- Identify units that are in need of specific attention for gender equality measures
+- Download image files in .png  (and soon .pdf) format you can use on your presentation, poster, role-up etc.
+- Monitor gender balance within and across the different fields of knowledge and disciplines constituting the broad educational and research portfolio of the institution
+- Evaluate the effects of interventions at the units’ level
+- Serve as guidance for the generation of effective and more gender-aware management practices at the institution.
 
 The Balancinator is still under construction. If you have any questions or feedback for improvement please contact lilli.mittner@uit.no
