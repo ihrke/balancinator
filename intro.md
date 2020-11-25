@@ -1,4 +1,4 @@
-The Balancinator is a free and open source software originally created in 2020 by Lilli & Matthias Mittner. It allows anyone to build generic plots to visualize distribution of men and women by inserting simple excel sheets instead of writing programming code. 
+The Balancinator is a free and open-source software originally created in 2020 by Lilli & Matthias Mittner. It allows anyone to build generic plots to visualize distribution of men and women by inserting simple excel sheets instead of writing programming code. 
 
 The Balancinator operationalizes gender balance as binary between men and women. When interpreting the plots we encourage to acknowledge that there might be more than two genders in your organization and that representation of men and women is only one of many indicators for gender equality. 
 
@@ -16,13 +16,14 @@ The source code of the Balancinator is located at: https://github.com/ihrke/bala
 - visualize gender balance by means of **diverging pips**
 - generate scatter plots that indicate increase or decrease of gender balance between **two points in time**
 
-- download **image files in .png  (and soon .pdf) format** you can use in your report, presentation, poster, role-up etc.
-- customize you data easily and get your updatet plots **on one klick**
 
-- identify units at your organizaion that are in **need of specific gender equality measures**
+- download **image files in .png  (and soon .pdf) format** you can use in your report, presentation, poster, role-up etc.
+- customize you data easily and get your updated plots **on one klick**
+
+- identify units at your organization that are in **need of specific gender equality measures**
 - monitor gender balance **within and across different fields of knowledge and practices**
 - evaluate the **effects of interventions** at the units’ level
 
 - develop effective and more **gender-aware management** practices at your institution
 
-The Balancinator is still under construction. If you have any questions or feedback for improvement please contact lilli.mittner@uit.no
+The Balancinator is still under construction. If you have any questions or feedback for improvement, please contact lilli.mittner@uit.no
