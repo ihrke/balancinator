@@ -21,7 +21,7 @@ The source code of the Balancinator is located at: https://github.com/ihrke/bala
 - update you data easily and get your **plots on one klick**
 
 - identify units at your organization that are in **need of specific gender equality measures**
-- monitor gender balance **within and across different fields of knowledge and practices**
+- monitor gender balance **within and across different units**
 - evaluate the **effects of interventions** at the units’ level
 
 - develop effective and more **gender-aware management** practices at your institution
