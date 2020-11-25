@@ -18,7 +18,7 @@ The source code of the Balancinator is located at: https://github.com/ihrke/bala
 
 
 - download **image files in .png  (and soon .pdf) format** you can use in your report, presentation, poster, role-up etc.
-- update you data easily and get your **plots on one klick**
+- update you data easily and get your **annual plots on one klick**
 
 - identify units at your organization that are in **need of specific gender equality measures**
 - monitor gender balance **within and across different units**
