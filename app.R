@@ -18,6 +18,9 @@ this.year=as.integer(format(Sys.Date(), "%Y"))
 ranmin=10
 ranmax=100
 max_deps=50
+balancinator_branding="http://uit.no/resources/balancinator"
+twitter_url <- "https://twitter.com/intent/tweet?text=Create%20great%20graphs%20for%20gender%20balance%20in%20your%20organization%20with%20@balancinator!&url=http://uit.no/resources/balancinator"
+facebook_url <- "https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fuit.no%2Fresources%2Fbalancinator&amp;src=sdkpreparse"
 
 # --------------------------------------------------------------
 # UI
@@ -48,13 +51,13 @@ ui <- fluidPage(
                         sliderInput("ndeps", "Number of departments", 1, max_deps,3),
                         bsTooltip("ndeps", "Number of departments for which to plot the gender balance.", "right"),
                         
-                        actionButton("zeroButton", "Set to zero"),
-                        actionButton("randomButton", "Fill with random values"),
+                        actionButton("zeroButton", "Set to zero", style = "width:100%;"),
+                        actionButton("randomButton", "Fill with random values", style = "width:100%;"),
                         
                         selectInput("downloadFormat", "Download Format", c("xlsx","csv")),
                         bsTooltip("downloadFormat", "Choose the format for your download.", "right"),
                         
-                        downloadButton("downloadData", "Download data"),
+                        downloadButton("downloadData", "Download data", style = "width:100%;"),
                         bsTooltip("downloadData", "Download the dataset. After download, you can modify and upload the dataset again using the Upload Data button.", "right"),
                         
 
@@ -90,6 +93,8 @@ ui <- fluidPage(
                              sliderInput("bar_width", "Width of bars", 0.01, 1, 0.1, step=0.1),
                              sliderInput("balanceplot_width", "Width of plot", 200, 1000, 500, step=50),
                              sliderInput("balanceplot_height", "Height of plot", 200, 1000, 500, step=50),
+                             checkboxInput("includeBalancinatorBrandingBalanceplot", "include Balancinator branding", value=T),
+                             downloadButton('downloadBalancePlot', 'Download as PDF', style = "width:100%;")
                              #actionButton("balanceReplotButton", "Replot"),
                              #circle = TRUE, status = "danger",
                              #icon = icon("gear"), width = "300px",
@@ -108,6 +113,8 @@ ui <- fluidPage(
                              #sliderInput("bar_width_n", "Number of bars", 1, 20, 4),
                              #sliderInput("bar_width", "Width of bars", 0.01, 1, 0.1, step=0.1),
                              sliderInput("prestigeplot_size", "Size of plot", 200, 1000, 500, step=50),
+                             checkboxInput("includeBalancinatorBrandingPrestigeplot", "include Balancinator branding", value=T),
+                             downloadButton('downloadPrestigePlot', 'Download as PDF', style = "width:100%;")
                          )), column(9, wellPanel(                         
                              uiOutput("prestigeplots")
                          ))                         
@@ -115,7 +122,16 @@ ui <- fluidPage(
                 tabPanel("About", includeMarkdown("help.md"))
     ),
     hr(),
-    includeMarkdown("footer.md")
+    includeMarkdown("footer.md"),
+    actionButton("twitter_share",
+                 label = "Tweet",
+                 icon = icon("twitter"),
+                 onclick = sprintf("window.open('%s')", twitter_url)),
+    actionButton("facebook_share",
+                 label = "Share",
+                 icon = icon("facebook"),
+                 onclick = sprintf("window.open('%s')", facebook_url))
+    
     
 )
 
@@ -124,6 +140,8 @@ ui <- fluidPage(
 # --------------------------------------------------------------
 server <- function(input, output,session) {
     g_data <- NULL
+    prestigeplot_objects <- NULL
+    balanceplot_objects <- NULL
     
     # header for the table
     get_sketch = function(years){
@@ -234,6 +252,8 @@ server <- function(input, output,session) {
                     arrange(year,gender)-> d
                 
                 freq=as.array(as.integer(d$val))
+                plot.new() 
+                dev.control("enable")
                 if(all(freq==0)){
                     plot(1,1)
                     text(1,1,"NO DATA")
@@ -251,9 +271,29 @@ server <- function(input, output,session) {
                                        sym = T, cluster.width = .4, panel.lty = 1)
                     title(dep)
                 }
+                if(input$includeBalancinatorBrandingBalanceplot){
+                    title(sub=balancinator_branding, adj=1, line=3, font=2)
+                }
+                
+                p=recordPlot()
+                dev.off()
+                balanceplot_objects[[my_i]] <<- p
+                
             })
         })
     }
+    
+    output$downloadBalancePlot <- downloadHandler(
+        filename = function() { "balanceplot.pdf"  },
+        content = function(file) {
+            w_in=input$balanceplot_width/90 
+            h_in=input$balanceplot_height/90
+            pdf("balanceplot.pdf", width=w_in, height=h_in)
+            lapply(balanceplot_objects, replayPlot)
+            dev.off()
+            file.copy("balanceplot.pdf", file, overwrite=TRUE)
+        }
+    )
     # --------------------------------------------------------------
     # Prestige Plot
     # --------------------------------------------------------------
@@ -372,7 +412,7 @@ server <- function(input, output,session) {
                     scale_y_continuous(expand = c(0, 0)) +
                     #scale_x_continuous(limits = c(-50,50), expand = c(0, 0)) +
                     #scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
-                    scale_size_continuous(limits = c(0,max(pmax(d$n1,d$n2))))+
+                    scale_size_continuous(limits = c(min(pmax(d$n1,d$n2)),max(pmax(d$n1,d$n2))))+
                     geom_text_repel(data=d,aes(x=prop1, y=prop2,label=department),
                                     #arrow = arrow(),#length = unit(0.03, "npc"), type = "closed", ends = "first"),
                                     force=2)+
@@ -383,11 +423,29 @@ server <- function(input, output,session) {
                           panel.background = element_rect(fill = NA))+
                     labs(x=xlabel, 
                          y=glue("Gender balance (% {propgender}) {year2}"),
-                         size="Total N")
+                         size="Total N") -> p
+                if(input$includeBalancinatorBrandingPrestigeplot){
+                    p<-p+labs(caption=balancinator_branding)+
+                        theme(plot.caption=element_text(hjust = 1),
+                              plot.caption.position = 'plot')
+                }
+                prestigeplot_objects[[my_i]] <<- p
+                #ggsave(plot=p, filename="prestigeplot.pdf")
+                p
             })
         })
     }
-
+    output$downloadPrestigePlot <- downloadHandler(
+        filename = function() { "prestigeplot.pdf"  },
+        content = function(file) {
+            w_in=input$prestigeplot_size/90 
+            h_in=w_in
+            pdf("prestigeplot.pdf", width=w_in, height=h_in)
+            lapply(prestigeplot_objects, print)
+            dev.off()
+            file.copy("prestigeplot.pdf", file, overwrite=TRUE)
+        }
+    )
     # --------------------------------------------------------------
     # BUTTONS
     # --------------------------------------------------------------
