@@ -2,7 +2,7 @@
 
 
 1. Insert data
-    - either manually by selecting numbber of years and departents and insert number of men and women
+    - either manually by selecting number of years and departments and insert number of men and women
     - or upload excel sheet (or csv) by downloading the template
 2. View your balance plot or prestige plot 
 3. Adjust colour, size and order

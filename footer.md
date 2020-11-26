@@ -1,4 +1,4 @@
 
 ---
  
-(C) 2020, Lilli Mittner & Matthias Mittner
+(C) 2020 by Lilli Mittner & Matthias Mittner
