@@ -11,7 +11,7 @@ The source code of the Balancinator is located at: https://github.com/ihrke/bala
 1. **Insert** data
     - either manually by selecting number of years and departments and insert number of men and women
     - or upload excel sheet (or csv) by selecting the template (the head of the table should not be changed in style!)
-2. **View** your Balance Plot or Prestige Plot by clicking on the blue section
+2. **View** your Balance Plot or Prestige Plot by clicking on the blue buttons
 3. **Adjust** colour, size and order
 4. **Download** images in .png or .pdf format
 
