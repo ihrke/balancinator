@@ -119,7 +119,8 @@ ui <- fluidPage(
                              uiOutput("prestigeplots")
                          ))                         
                 ),
-                tabPanel("About", includeMarkdown("help.md"))
+                tabPanel("Help", includeMarkdown("help.md")),
+                tabPanel("About", includeMarkdown("about.md"))
     ),
     hr(),
     includeMarkdown("footer.md"),
@@ -252,8 +253,6 @@ server <- function(input, output,session) {
                     arrange(year,gender)-> d
                 
                 freq=as.array(as.integer(d$val))
-                plot.new() 
-                dev.control("enable")
                 if(all(freq==0)){
                     plot(1,1)
                     text(1,1,"NO DATA")
@@ -276,7 +275,6 @@ server <- function(input, output,session) {
                 }
                 
                 p=recordPlot()
-                dev.off()
                 balanceplot_objects[[my_i]] <<- p
                 
             })
