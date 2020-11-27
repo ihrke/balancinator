@@ -13,5 +13,5 @@ The Balancinator is a free and open-source software originally created in 2020 b
 - evaluate the **effects of interventions** at the units’ level
 - develop effective and more **gender-aware management** practices at your institution
 
-The Balancinator is still under construction. If you have any questions or feedback for improvement, please contact lilli.mittner@uit.no.
+The Balancinator is still under construction. If you have any questions or feedback for improvement, please contact balancinator@uit.no.
 
