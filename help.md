@@ -1,6 +1,5 @@
 <h4>Help</h4>	
 
-
 <h4>Balancinator explained in 4 steps</h4>	
 
 
