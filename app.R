@@ -412,7 +412,8 @@ server <- function(input, output,session) {
                     scale_y_continuous(expand = c(.0, .0), limits=c(0,100)) +
                     #scale_x_continuous(limits = c(-50,50), expand = c(0, 0)) +
                     #scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
-                    scale_size_continuous(limits = c(min(pmax(d$n1,d$n2)),max(pmax(d$n1,d$n2))))+
+                    scale_size_continuous(limits = c(min(pmax(d$n1,d$n2)),max(pmax(d$n1,d$n2))),
+                                          labels=\(lab) sprintf("<%i",lab))+
                     geom_text_repel(data=d,aes(x=prop1, y=prop2,label=department),
                                     #arrow = arrow(),#length = unit(0.03, "npc"), type = "closed", ends = "first"),
                                     force=2)+
