@@ -6,6 +6,7 @@ library(shiny)
 library(shinyBS)
 library("shinyWidgets")
 library(colourpicker)
+library(markdown)
 library(tidyverse)
 library(haven)
 library(ggrepel)
@@ -48,8 +49,8 @@ ui <- fluidPage(
                         #sliderInput("nyears", "Number of years", 1, 8, 2),
                         #bsTooltip("nyears", "Number of years for which to plot the gender balance.", "right"),
                         
-                        sliderInput("ndeps", "Number of departments", 1, max_deps,3),
-                        bsTooltip("ndeps", "Number of departments for which to plot the gender balance.", "right"),
+                        sliderInput("ndeps", "Number of units", 1, max_deps,3),
+                        bsTooltip("ndeps", "Number of units for which to plot the gender balance.", "right"),
                         
                         actionButton("zeroButton", "Set to zero", style = "width:100%;"),
                         actionButton("randomButton", "Fill with random values", style = "width:100%;"),
@@ -150,7 +151,7 @@ server <- function(input, output,session) {
             class = 'display',
             thead(
                 tr(
-                    th(rowspan = 2, 'Department'),
+                    th(rowspan = 2, 'Units'),
                     lapply(years, function(.x) th(colspan = 2, align="center", style="text-align:center", .x)),
                 ),
                 tr(
@@ -170,7 +171,7 @@ server <- function(input, output,session) {
             # new initialization
             #g_years <<- sprintf("year%i", 1:input$nyears)
             g_data<<-tibble(
-                Department=sprintf("Department %i", 1:input$ndeps)
+                Department=sprintf("Unit %i", 1:input$ndeps)
             )
             for(year in input$years){
                 g_data[sprintf("%s.men",year)]<<-rep(0,input$ndeps)
@@ -198,7 +199,7 @@ server <- function(input, output,session) {
             # num departments changed
             if(input$ndeps>dim(g_data)[1]){
                 # add rows
-                new.deps=sprintf("Department %i", (dim(g_data)[1]+1):input$ndeps)
+                new.deps=sprintf("Unit %i", (dim(g_data)[1]+1):input$ndeps)
                 for(dep in new.deps){
                     g_data <<- rbind(g_data, c(dep, rep(0,dim(g_data)[2]-1)))
                 }
