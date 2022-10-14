@@ -171,7 +171,7 @@ server <- function(input, output,session) {
             # new initialization
             #g_years <<- sprintf("year%i", 1:input$nyears)
             g_data<<-tibble(
-                Department=sprintf("Unit %i", 1:input$ndeps)
+                Unit=sprintf("Unit %i", 1:input$ndeps)
             )
             for(year in input$years){
                 g_data[sprintf("%s.men",year)]<<-rep(0,input$ndeps)
@@ -196,7 +196,7 @@ server <- function(input, output,session) {
         }
 
         if(input$ndeps!=dim(g_data)[1]){
-            # num departments changed
+            # num units changed
             if(input$ndeps>dim(g_data)[1]){
                 # add rows
                 new.deps=sprintf("Unit %i", (dim(g_data)[1]+1):input$ndeps)
@@ -246,11 +246,11 @@ server <- function(input, output,session) {
                 d=input$zeroButton
                 e=input$randomButton
                 
-                dep=unique(pull(g_data, Department))[my_i]
+                dep=unique(pull(g_data, Unit))[my_i]
                 #print(dep)
                 g_data %>%
-                    filter(Department==dep) %>%
-                    gather(var,val,-Department) %>%
+                    filter(Unit==dep) %>%
+                    gather(var,val,-Unit) %>%
                     separate(var,c("year","gender"),sep="\\.") %>%
                     arrange(year,gender)-> d
                 
@@ -334,15 +334,15 @@ server <- function(input, output,session) {
                 yy=as.character(sort(as.integer(c(year1,year2))))
                 year1=yy[1]
                 year2=yy[2]
-                g_data %>% gather(var,freq,-Department) %>%
+                g_data %>% gather(var,freq,-Unit) %>%
                     separate(var,c("year","gender"),sep="\\.") %>%
-                    rename(department=Department) %>%
+                    rename(unit=Unit) %>%
                     spread(gender, freq) %>%
                     mutate(n=men+women, prop=women/n*100) %>%
                     filter(year %in% c(year1,year2)) %>%
                     gather(var,val,n,prop) %>% 
                     unite(year,var,col = "var", sep = "_") %>%
-                    select(department,var,val) %>%
+                    select(unit,var,val) %>%
                     spread(var,val) %>%
                     rename(prop1=paste0(year1,"_prop"),
                            prop2=paste0(year2,"_prop"),
@@ -414,7 +414,7 @@ server <- function(input, output,session) {
                     #scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
                     scale_size_continuous(limits = c(min(pmax(d$n1,d$n2)),max(pmax(d$n1,d$n2))),
                                           labels=\(lab) sprintf("<%i",lab))+
-                    geom_text_repel(data=d,aes(x=prop1, y=prop2,label=department),
+                    geom_text_repel(data=d,aes(x=prop1, y=prop2,label=unit),
                                     #arrow = arrow(),#length = unit(0.03, "npc"), type = "closed", ends = "first"),
                                     force=2)+
                     theme_bw()+
@@ -483,7 +483,7 @@ server <- function(input, output,session) {
         }
         
         req(input$inputfile)
-        #req_cols=c("year","department","gender","freq")
+        #req_cols=c("year","unit","gender","freq")
         d=NULL
         if (tolower(tools::file_ext(input$inputfile$datapath)) == "xlsx") { 
             tryCatch({ d=readxl::read_xlsx(input$inputfile$datapath) },
