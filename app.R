@@ -91,7 +91,7 @@ ui <- fluidPage(
                              colourInput("femaleColor", "Select colour for women", "blue"),
                              checkboxInput("malesUp", "change order", value=T),
                              sliderInput("bar_width_n", "Number of bars", 1, 20, 4),
-                             sliderInput("bar_width", "Width of bars", 0.01, 1, 0.1, step=0.1),
+                             sliderInput("bar_width", "Width of bars", 1, 100, 10, step=5),
                              sliderInput("balanceplot_width", "Width of plot", 200, 1000, 500, step=50),
                              sliderInput("balanceplot_height", "Height of plot", 200, 1000, 500, step=50),
                              checkboxInput("includeBalancinatorBrandingBalanceplot", "include Balancinator branding", value=T),
@@ -268,7 +268,7 @@ server <- function(input, output,session) {
                         freq=freq[2:1,]
                         bar.col=bar.col[2:1]
                     }
-                    diverging_pip_plot(freq, bar.width = input$bar_width, bar.width.n = input$bar_width_n, bar.col = bar.col, add.pct=T,
+                    diverging_pip_plot(freq, bar.width = input$bar_width/100, bar.width.n = input$bar_width_n, bar.col = bar.col, add.pct=T,
                                        sym = T, cluster.width = .4, panel.lty = 1)
                     title(dep)
                 }
