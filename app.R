@@ -407,8 +407,8 @@ server <- function(input, output,session) {
                     geom_hline(yintercept = grid.min.y, color="white", size=0.1)+
                     geom_point(data=d, aes(x=prop1,y=prop2,size=pmax(n1,n2)))+
                     #coord_fixed(xlim=c(-50,50),ylim=c(0,100))+
-                    scale_x_continuous(expand = c(.1, .1)) +
-                    scale_y_continuous(expand = c(0, 0)) +
+                    scale_x_continuous(expand = c(.0, .0), limits=c(0,100)) +
+                    scale_y_continuous(expand = c(.0, .0), limits=c(0,100)) +
                     #scale_x_continuous(limits = c(-50,50), expand = c(0, 0)) +
                     #scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
                     scale_size_continuous(limits = c(min(pmax(d$n1,d$n2)),max(pmax(d$n1,d$n2))))+
