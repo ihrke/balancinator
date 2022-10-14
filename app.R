@@ -214,7 +214,8 @@ server <- function(input, output,session) {
     
     observeEvent(input$balancedata_cell_edit, {
         g_data <<- editData(g_data, input$balancedata_cell_edit, 'balancedata', rownames=F)
-        #print(g_data)
+        maxval <- g_data |> select(where(is.numeric)) |> max()
+        updateSliderInput(session, "bar_width_n", max=maxval/10)
     })
 
     
