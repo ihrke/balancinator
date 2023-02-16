@@ -443,10 +443,12 @@ server <- function(input, output,session) {
         content = function(file) {
             w_in=input$prestigeplot_size/90 
             h_in=w_in
-            pdf("prestigeplot.pdf", width=w_in, height=h_in)
+            pppdffile <- tempfile(pattern = "prestigeplot", tmpdir = tempdir(), fileext = "pdf")
+            
+            pdf(pppdffile, width=w_in, height=h_in)
             lapply(prestigeplot_objects, print)
             dev.off()
-            file.copy("prestigeplot.pdf", file, overwrite=TRUE)
+            file.copy(pppdffile, file, overwrite=TRUE)
         }
     )
     # --------------------------------------------------------------
