@@ -288,10 +288,12 @@ server <- function(input, output,session) {
         content = function(file) {
             w_in=input$balanceplot_width/90 
             h_in=input$balanceplot_height/90
-            pdf("balanceplot.pdf", width=w_in, height=h_in)
+            bppdffile <- tempfile(pattern = "balanceplot", tmpdir = tempdir(), fileext = "pdf")
+            
+            pdf(bppdffile, width=w_in, height=h_in)
             lapply(balanceplot_objects, replayPlot)
             dev.off()
-            file.copy("balanceplot.pdf", file, overwrite=TRUE)
+            file.copy(bppdffile, file, overwrite=TRUE)
         }
     )
     # --------------------------------------------------------------
